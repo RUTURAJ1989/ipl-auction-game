@@ -40,3 +40,93 @@ database.ref('players').on('value', (snapshot) => {
 function deletePlayer(playerId) {
     database.ref('players/' + playerId).remove();
 }
+// Auction Controls
+document.getElementById('startAuction').addEventListener('click', () => {
+    database.ref('config/auctionStatus').set('running');
+    startNextPlayer();
+  });
+  
+  document.getElementById('pauseAuction').addEventListener('click', () => {
+    database.ref('config/auctionStatus').set('paused');
+  });
+  
+  document.getElementById('nextPlayer').addEventListener('click', () => {
+    startNextPlayer();
+  });
+  
+  async function startNextPlayer() {
+    // Find next unsold player
+    const playersSnapshot = await database.ref('players').once('value');
+    const players = playersSnapshot.val();
+    let nextPlayer = null;
+    
+    for (const [id, player] of Object.entries(players)) {
+      if (player.status === 'unsold') {
+        nextPlayer = id;
+        break;
+      }
+    }
+    
+    if (nextPlayer) {
+      database.ref('config').update({
+        currentPlayer: nextPlayer,
+        timer: parseInt(document.getElementById('bidTimer').value)
+      });
+      
+      database.ref('players/' + nextPlayer + '/status').set('ongoing');
+    } else {
+      database.ref('config/auctionStatus').set('completed');
+      alert("Auction completed! All players sold.");
+    }
+  }
+  
+  // Team Management
+  function renderTeams() {
+    database.ref('teams').on('value', (snapshot) => {
+      const teamsList = document.getElementById('teamsList');
+      teamsList.innerHTML = '';
+      
+      snapshot.forEach((teamSnapshot) => {
+        const team = teamSnapshot.val();
+        const teamDiv = document.createElement('div');
+        teamDiv.className = 'team-card';
+        teamDiv.innerHTML = `
+          <img src="${team.icon}" alt="${team.name}">
+          <h4>${team.name}</h4>
+          <p>Budget: ₹${team.remainingBudget.toLocaleString()}/${team.budget.toLocaleString()}</p>
+          <p>Players: ${Object.keys(team.players || {}).length}/${team.maxPlayers}</p>
+          <button onclick="editTeam('${team.id}')">Edit</button>
+        `;
+        teamsList.appendChild(teamDiv);
+      });
+    });
+  }
+  
+  // Player Import/Export
+  document.getElementById('importPlayers').addEventListener('click', () => {
+    const fileInput = document.getElementById('playerCsv');
+    const file = fileInput.files[0];
+    
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const csv = e.target.result;
+        const players = parseCSV(csv);
+        
+        players.forEach(player => {
+          database.ref('players').push({
+            ...player,
+            status: 'unsold',
+            currentBid: 0,
+            team: null
+          });
+        });
+      };
+      reader.readAsText(file);
+    }
+  });
+  
+  function parseCSV(csv) {
+    // Implement CSV parsing logic
+    return []; // Return array of player objects
+  }

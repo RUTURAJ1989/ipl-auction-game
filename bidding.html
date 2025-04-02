@@ -26,3 +26,67 @@
 </div>
 
 <script src="js/bidding.js"></script>
+<div class="bidding-container">
+    <div class="auction-header">
+      <div class="team-budgets">
+        <!-- Dynamically generated team budget indicators -->
+      </div>
+      <div class="auction-info">
+        <h2>Round: <span id="auctionRound">1</span></h2>
+        <div class="timer-container">
+          <div class="timer-circle">
+            <svg class="timer-svg" viewBox="0 0 100 100">
+              <circle class="timer-bg" cx="50" cy="50" r="45"></circle>
+              <circle class="timer-progress" cx="50" cy="50" r="45"></circle>
+            </svg>
+            <span id="countdown">30</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <div class="player-display">
+      <!-- Enhanced player display -->
+      <div class="player-stats">
+        <h3 id="currentPlayerName">Waiting for auction to start...</h3>
+        <div class="stat-row">
+          <span>Nationality:</span>
+          <span id="playerNationality">-</span>
+        </div>
+        <div class="stat-row">
+          <span>Matches:</span>
+          <span id="playerMatches">-</span>
+        </div>
+        <div class="stat-row">
+          <span>Average:</span>
+          <span id="playerAverage">-</span>
+        </div>
+      </div>
+      <div class="bid-history">
+        <h4>Bid History</h4>
+        <ul id="bidHistoryList"></ul>
+      </div>
+    </div>
+  
+    <div class="bid-controls">
+      <div class="quick-bid-buttons">
+        <button class="quick-bid" data-amount="1000000">+1M</button>
+        <button class="quick-bid" data-amount="5000000">+5M</button>
+        <button class="quick-bid" data-amount="10000000">+10M</button>
+      </div>
+      <div class="bid-input">
+        <span>₹</span>
+        <input type="number" id="bidAmount" min="0">
+        <select id="teamSelect"></select>
+        <button id="placeBidBtn">Place Bid</button>
+      </div>
+      <div class="sold-players-toggle">
+        <button id="toggleSold">Show Sold Players</button>
+      </div>
+    </div>
+  
+    <div class="sold-players-container" id="soldPlayersContainer">
+      <h3>Recently Sold Players</h3>
+      <div class="sold-players-grid" id="soldPlayersGrid"></div>
+    </div>
+  </div>
