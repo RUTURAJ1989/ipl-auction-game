@@ -1,0 +1,68 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+}
+
+header {
+    background-color: #1a1a2e;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+}
+
+nav a {
+    color: white;
+    margin: 0 10px;
+    text-decoration: none;
+}
+
+.player-card {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: inline-block;
+    width: 200px;
+}
+
+.player-card img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+.bidding-container {
+    max-width: 800px;
+    margin: 20px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.player-display {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.player-display img {
+    max-width: 200px;
+    border-radius: 8px;
+}
+
+.bid-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.timer {
+    text-align: center;
+    font-size: 1.5rem;
+    color: #e63946;
+    font-weight: bold;
+}

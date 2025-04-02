@@ -1,0 +1,29 @@
+<!-- Add to admin.html -->
+<div class="admin-container">
+    <h2>Admin Panel</h2>
+    
+    <div class="admin-section">
+        <h3>Add New Player</h3>
+        <form id="addPlayerForm">
+            <input type="text" id="playerName" placeholder="Name" required>
+            <input type="number" id="playerAge" placeholder="Age" required>
+            <select id="playerRole" required>
+                <option value="">Select Role</option>
+                <option value="Batsman">Batsman</option>
+                <option value="Bowler">Bowler</option>
+                <option value="All-Rounder">All-Rounder</option>
+                <option value="Wicketkeeper">Wicketkeeper</option>
+            </select>
+            <input type="number" id="basePrice" placeholder="Base Price" required>
+            <input type="text" id="playerImage" placeholder="Image URL">
+            <button type="submit">Add Player</button>
+        </form>
+    </div>
+
+    <div class="admin-section">
+        <h3>Current Players</h3>
+        <div id="playersList"></div>
+    </div>
+</div>
+
+<script src="js/admin.js"></script>

@@ -1,0 +1,28 @@
+<div class="bidding-container">
+    <div class="player-display">
+        <h2 id="currentPlayerName">Waiting for auction to start...</h2>
+        <img id="currentPlayerImage" src="default.jpg">
+        <div class="player-info">
+            <p>Role: <span id="currentPlayerRole"></span></p>
+            <p>Base Price: ₹<span id="currentPlayerBasePrice"></span></p>
+            <h3>Current Bid: ₹<span id="currentBidAmount">0</span></h3>
+            <p>Leading Team: <span id="leadingTeam">None</span></p>
+        </div>
+    </div>
+
+    <div class="bid-controls">
+        <input type="number" id="bidAmount" placeholder="Enter bid amount">
+        <select id="teamSelect">
+            <option value="MI">Mumbai Indians</option>
+            <option value="CSK">Chennai Super Kings</option>
+            <!-- Add more teams -->
+        </select>
+        <button id="placeBidBtn">Place Bid</button>
+    </div>
+
+    <div class="timer">
+        Time remaining: <span id="countdown">30</span>s
+    </div>
+</div>
+
+<script src="js/bidding.js"></script>
