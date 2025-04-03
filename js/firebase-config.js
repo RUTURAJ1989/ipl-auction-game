@@ -6,9 +6,9 @@ const firebaseConfig = {
   storageBucket: "ipl-auction-game-89635.firebasestorage.app",
   messagingSenderId: "1068660815248",
   appId: "1:1068660815248:web:29f41524ab94c7de952f15",
-  measurementId: "G-BNJZMTCGVT"
-};
+  };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}

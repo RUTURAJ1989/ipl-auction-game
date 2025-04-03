@@ -1,3 +1,10 @@
+firebase.database().ref('admins/' + user.uid).once('value')
+  .then((snapshot) => {
+    if (!snapshot.exists()) {
+      alert('Admin access required');
+      firebase.auth().signOut();
+    }
+  });
 document.getElementById('addPlayerForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
