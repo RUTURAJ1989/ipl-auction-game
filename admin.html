@@ -23,27 +23,25 @@
             padding: 0;
         }
         <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+        <!-- Replace old Firebase links with these -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
-<!-- Your Firebase Config -->
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDaHHjMdchgRKCq-xDTzT2p1-WBP8KI9h4",
-    authDomain: "ipl-auction-game-89635.firebaseapp.com",
-    databaseURL: "https://ipl-auction-game-89635-default-rtdb.firebaseio.com",
-    projectId: "ipl-auction-game-89635",
-    storageBucket: "ipl-auction-game-89635.firebasestorage.app",
-    messagingSenderId: "1068660815248",
-    appId: "1:1068660815248:web:29f41524ab94c7de952f15D"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyDaHHjMdchgRKCq-xDTzT2p1-WBP8KI9h4",
+  authDomain: "ipl-auction-game-89635.firebaseapp.com",
+  databaseURL: "https://ipl-auction-game-89635-default-rtdb.firebaseio.com",
+  projectId: "ipl-auction-game-89635",
+  storageBucket: "ipl-auction-game-89635.firebasestorage.app",
+  messagingSenderId: "1068660815248",
+  appId: "1:1068660815248:web:29f41524ab94c7de952f15",
+  measurementId: "G-BNJZMTCGVT"
+};
 
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const database = firebase.database();
-  const auth = firebase.auth();
-  
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 </script>
         body {
             font-family: 'Poppins', sans-serif;
