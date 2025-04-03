@@ -4,23 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live IPL Auction Bidding</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- UI Libraries -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --primary: #ff5e14;
-            --secondary: #2b2d42;
-            --accent: #00b4d8;
+            --primary: #ff5e14; /* IPL Orange */
+            --secondary: #2b2d42; /* Dark Blue */
+            --accent: #00b4d8; /* Teal */
             --light: #f8f9fa;
             --success: #2ecc71;
+            --danger: #e74c3c;
         }
         
         body {
             font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
             background: linear-gradient(135deg, #0f2027, #203a43);
             color: white;
-            margin: 0;
-            overflow-x: hidden;
         }
         
         .auction-container {
@@ -34,10 +40,9 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 2rem;
+            padding: 1rem;
             background: rgba(255,255,255,0.05);
-            padding: 1rem 2rem;
             border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
         }
         
         .current-player {
@@ -47,21 +52,8 @@
             border-radius: 15px;
             padding: 2rem;
             margin-bottom: 2rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             position: relative;
             overflow: hidden;
-        }
-        
-        .current-player::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80') center/cover;
-            opacity: 0.3;
-            z-index: -1;
         }
         
         .player-image {
@@ -71,12 +63,6 @@
             object-fit: cover;
             border: 5px solid var(--primary);
             box-shadow: 0 0 30px rgba(255,94,20,0.5);
-            transition: all 0.3s ease;
-        }
-        
-        .player-image:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 50px rgba(255,94,20,0.8);
         }
         
         .player-details {
@@ -84,15 +70,14 @@
         }
         
         .player-name {
-            font-size: 2.5rem;
-            margin: 0;
+            font-size: 2rem;
             color: var(--primary);
-            text-shadow: 0 0 10px rgba(255,94,20,0.5);
+            margin-bottom: 0.5rem;
         }
         
         .player-stats {
             display: flex;
-            gap: 2rem;
+            gap: 1rem;
             margin: 1rem 0;
         }
         
@@ -100,14 +85,11 @@
             background: rgba(255,255,255,0.1);
             padding: 0.5rem 1rem;
             border-radius: 5px;
-            min-width: 100px;
             text-align: center;
+            min-width: 80px;
         }
         
         .bid-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             width: 300px;
             background: rgba(0,0,0,0.3);
             padding: 1.5rem;
@@ -117,8 +99,9 @@
         
         .current-bid {
             font-size: 2rem;
-            margin: 1rem 0;
             color: var(--success);
+            text-align: center;
+            margin: 1rem 0;
             animation: pulse 1.5s infinite;
         }
         
@@ -131,13 +114,11 @@
         .bid-form {
             display: flex;
             flex-direction: column;
-            width: 100%;
             gap: 1rem;
         }
         
         .bid-input {
             display: flex;
-            align-items: center;
             background: rgba(255,255,255,0.1);
             border-radius: 5px;
             overflow: hidden;
@@ -155,11 +136,7 @@
             border: none;
             padding: 0.8rem;
             color: white;
-            font-size: 1.2rem;
-        }
-        
-        .bid-input input:focus {
-            outline: none;
+            font-size: 1.1rem;
         }
         
         .team-select {
@@ -169,7 +146,6 @@
             border: 1px solid var(--accent);
             border-radius: 5px;
             color: white;
-            font-size: 1rem;
         }
         
         .bid-button {
@@ -178,23 +154,21 @@
             border: none;
             padding: 1rem;
             border-radius: 5px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
         }
         
         .bid-button:hover {
-            background: #ff4500;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(255,94,20,0.4);
+            background: #e04b00;
+            transform: translateY(-2px);
         }
         
         .timer-container {
-            position: relative;
             width: 100px;
             height: 100px;
-            margin: 1rem auto;
+            position: relative;
         }
         
         .timer-svg {
@@ -214,7 +188,6 @@
             stroke: var(--accent);
             stroke-width: 8;
             stroke-dasharray: 283;
-            stroke-linecap: round;
             transition: stroke-dashoffset 1s linear;
         }
         
@@ -223,26 +196,15 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: bold;
-            color: white;
         }
         
         .bid-history {
-            margin-top: 2rem;
             background: rgba(0,0,0,0.3);
             border-radius: 10px;
             padding: 1.5rem;
-        }
-        
-        .bid-history h3 {
-            margin-top: 0;
-            color: var(--accent);
-        }
-        
-        .bid-list {
-            max-height: 200px;
-            overflow-y: auto;
+            margin-top: 2rem;
         }
         
         .bid-item {
@@ -250,7 +212,7 @@
             justify-content: space-between;
             padding: 0.8rem;
             border-bottom: 1px solid rgba(255,255,255,0.1);
-            animation: fadeIn 0.5s ease;
+            animation: fadeIn 0.5s;
         }
         
         @keyframes fadeIn {
@@ -267,107 +229,9 @@
             color: var(--success);
         }
         
-        .price-chart {
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            padding: 1.5rem;
-            margin-top: 2rem;
-        }
-        
-        .teams-status {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-        
-        .team-card {
-            background: rgba(255,255,255,0.05);
-            border-radius: 10px;
-            padding: 1rem;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .team-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255,255,255,0.1);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        
-        .team-logo {
-            width: 50px;
-            height: 50px;
-            object-fit: contain;
-            margin-right: 1rem;
-        }
-        
-        .team-name {
-            font-weight: bold;
-            margin: 0.5rem 0;
-        }
-        
-        .team-budget {
-            height: 5px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 5px;
-            margin: 0.5rem 0;
-            overflow: hidden;
-        }
-        
-        .budget-progress {
-            height: 100%;
-            background: var(--success);
-            border-radius: 5px;
-            transition: width 0.5s ease;
-        }
-        
-        .sold-players {
-            margin-top: 2rem;
-        }
-        
-        .players-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        
-        .sold-player {
-            background: rgba(255,255,255,0.05);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-        
-        .sold-player:hover {
-            transform: scale(1.05);
-            background: rgba(255,255,255,0.1);
-        }
-        
-        .sold-player-img {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 0.5rem;
-            border: 2px solid var(--primary);
-        }
-        
-        /* Responsive design */
         @media (max-width: 768px) {
             .current-player {
                 flex-direction: column;
-                align-items: center;
-            }
-            
-            .player-details {
-                text-align: center;
-            }
-            
-            .player-stats {
-                justify-content: center;
             }
             
             .bid-section {
@@ -379,7 +243,7 @@
 <body>
     <div class="auction-container">
         <div class="auction-header">
-            <h1>IPL 2024 Auction</h1>
+            <h1><i class="fas fa-gavel"></i> Live IPL Auction</h1>
             <div class="timer-container">
                 <svg class="timer-svg" viewBox="0 0 100 100">
                     <circle class="timer-circle-bg" cx="50" cy="50" r="45"></circle>
@@ -389,165 +253,77 @@
             </div>
         </div>
         
-        <div class="current-player">
-            <img src="https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/319000/319095.jpg" alt="Player" class="player-image" id="player-image">
+        <div class="current-player" id="current-player">
+            <!-- Player details will be inserted here by JavaScript -->
+        </div>
+        
+        <div class="bid-section">
+            <h3>Current Bid</h3>
+            <div class="current-bid" id="current-bid">₹0</div>
+            <div id="leading-team" style="text-align: center; margin-bottom: 1rem;">No bids yet</div>
             
-            <div class="player-details">
-                <h2 class="player-name" id="player-name">Virat Kohli</h2>
-                <p id="player-role">Batsman | Top Order | Indian</p>
-                
-                <div class="player-stats">
-                    <div class="stat-card">
-                        <div>Matches</div>
-                        <strong id="player-matches">237</strong>
-                    </div>
-                    <div class="stat-card">
-                        <div>Runs</div>
-                        <strong id="player-runs">7,263</strong>
-                    </div>
-                    <div class="stat-card">
-                        <div>Avg</div>
-                        <strong id="player-avg">37.25</strong>
-                    </div>
-                    <div class="stat-card">
-                        <div>SR</div>
-                        <strong id="player-sr">130.02</strong>
-                    </div>
+            <form class="bid-form" id="bid-form">
+                <div class="bid-input">
+                    <span>₹</span>
+                    <input type="number" id="bid-amount" placeholder="Enter amount" min="0" required>
                 </div>
                 
-                <div class="base-price">
-                    <h3>Base Price: <span id="base-price">₹2,00,00,000</span></h3>
-                </div>
-            </div>
-            
-            <div class="bid-section">
-                <h3>Current Bid</h3>
-                <div class="current-bid" id="current-bid">₹2,50,00,000</div>
-                <div class="leading-team" id="leading-team">Mumbai Indians</div>
+                <select class="team-select" id="team-select" required>
+                    <option value="">Select Team</option>
+                    <option value="MI">Mumbai Indians</option>
+                    <option value="CSK">Chennai Super Kings</option>
+                    <option value="RCB">Royal Challengers Bangalore</option>
+                    <option value="KKR">Kolkata Knight Riders</option>
+                    <option value="DC">Delhi Capitals</option>
+                    <option value="PBKS">Punjab Kings</option>
+                    <option value="RR">Rajasthan Royals</option>
+                    <option value="SRH">Sunrisers Hyderabad</option>
+                </select>
                 
-                <form class="bid-form" id="bid-form">
-                    <div class="bid-input">
-                        <span>₹</span>
-                        <input type="number" id="bid-amount" placeholder="Enter bid amount" min="20000000" step="100000">
-                    </div>
-                    
-                    <select class="team-select" id="team-select">
-                        <option value="">Select Team</option>
-                        <option value="MI">Mumbai Indians</option>
-                        <option value="CSK">Chennai Super Kings</option>
-                        <option value="RCB">Royal Challengers Bangalore</option>
-                        <option value="KKR">Kolkata Knight Riders</option>
-                        <option value="DC">Delhi Capitals</option>
-                        <option value="PBKS">Punjab Kings</option>
-                        <option value="RR">Rajasthan Royals</option>
-                        <option value="SRH">Sunrisers Hyderabad</option>
-                    </select>
-                    
-                    <button type="submit" class="bid-button">PLACE BID</button>
-                </form>
-            </div>
+                <button type="submit" class="bid-button">
+                    <i class="fas fa-hand-paper"></i> PLACE BID
+                </button>
+            </form>
         </div>
         
         <div class="bid-history">
-            <h3>Bid History</h3>
-            <div class="bid-list" id="bid-list">
-                <!-- Bid items will be added dynamically -->
-            </div>
-        </div>
-        
-        <div class="price-chart">
-            <h3>Bidding Trend</h3>
-            <canvas id="priceChart" height="150"></canvas>
-        </div>
-        
-        <div class="teams-status">
-            <h3 style="grid-column: 1 / -1;">Teams Budget Status</h3>
-            <!-- Team cards will be added dynamically -->
-        </div>
-        
-        <div class="sold-players">
-            <h3>Recently Sold Players</h3>
-            <div class="players-grid" id="sold-players-grid">
-                <!-- Sold players will be added dynamically -->
-            </div>
+            <h3><i class="fas fa-history"></i> Bid History</h3>
+            <div id="bid-list"></div>
         </div>
     </div>
 
+    <!-- Firebase Configuration -->
+    <script src="js/firebase-config.js"></script>
+    
+    <!-- Bidding Logic -->
     <script>
-        // Initialize Firebase (replace with your config)
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-            projectId: "YOUR_PROJECT",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-        
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        
         // DOM Elements
-        const countdownEl = document.getElementById('countdown');
-        const timerCircle = document.querySelector('.timer-circle');
+        const currentPlayerEl = document.getElementById('current-player');
+        const currentBidEl = document.getElementById('current-bid');
+        const leadingTeamEl = document.getElementById('leading-team');
         const bidForm = document.getElementById('bid-form');
         const bidList = document.getElementById('bid-list');
-        const priceChartCtx = document.getElementById('priceChart').getContext('2d');
+        const countdownEl = document.getElementById('countdown');
+        const timerCircle = document.querySelector('.timer-circle');
         
-        // Timer variables
-        let timer;
+        // Firebase References
+        const db = firebase.database();
+        let currentPlayerId = null;
         let timeLeft = 30;
         const circumference = 2 * Math.PI * 45;
         
-        // Price chart
-        const priceChart = new Chart(priceChartCtx, {
-            type: 'line',
-            data: {
-                labels: ['Start', '1m', '2m', '3m', '4m', 'Current'],
-                datasets: [{
-                    label: 'Bid Amount (₹ Cr)',
-                    data: [2, 2.1, 2.3, 2.5, 2.7, 2.5],
-                    borderColor: '#ff5e14',
-                    backgroundColor: 'rgba(255, 94, 20, 0.1)',
-                    borderWidth: 3,
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        ticks: {
-                            callback: function(value) {
-                                return '₹' + value;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        
-        // Start timer
+        // Initialize Timer
         function startTimer(seconds) {
-            clearInterval(timer);
+            clearInterval(window.timerInterval);
             timeLeft = seconds;
             updateTimerDisplay();
             
-            timer = setInterval(() => {
+            window.timerInterval = setInterval(() => {
                 timeLeft--;
                 updateTimerDisplay();
                 
                 if (timeLeft <= 0) {
-                    clearInterval(timer);
+                    clearInterval(window.timerInterval);
                     endBidding();
                 }
             }, 1000);
@@ -563,58 +339,82 @@
                 timerCircle.style.stroke = '#ff4757';
                 countdownEl.style.color = '#ff4757';
             } else {
-                timerCircle.style.stroke = '#00b4d8';
+                timerCircle.style.stroke = 'var(--accent)';
                 countdownEl.style.color = 'white';
             }
         }
         
         function endBidding() {
-            // Add your logic for when time runs out
-            alert('Bidding time is over!');
+            if (!currentPlayerId) return;
+            
+            db.ref('players/' + currentPlayerId).once('value').then((snapshot) => {
+                const player = snapshot.val();
+                if (player.team) {
+                    alert(`${player.name} sold to ${player.team} for ₹${player.currentBid.toLocaleString()}!`);
+                } else {
+                    alert(`${player.name} went unsold!`);
+                }
+            });
         }
         
-        // Handle bid submission
-        bidForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const bidAmount = document.getElementById('bid-amount').value;
-            const team = document.getElementById('team-select').value;
-            
-            if (!bidAmount || !team) {
-                alert('Please enter bid amount and select team');
-                return;
+        // Load Current Player
+        db.ref('auction/current').on('value', (snapshot) => {
+            currentPlayerId = snapshot.val();
+            if (currentPlayerId) {
+                db.ref('players/' + currentPlayerId).once('value').then((playerSnap) => {
+                    const player = playerSnap.val();
+                    renderPlayer(player);
+                    startTimer(30); // Reset timer for new player
+                });
             }
-            
-            // Add bid to Firebase
-            const newBid = {
-                amount: bidAmount,
-                team: team,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            };
-            
-            // Push to Firebase
-            database.ref('bids').push(newBid);
-            
-            // Update current bid display
-            document.getElementById('current-bid').textContent = `₹${formatNumber(bidAmount)}`;
-            document.getElementById('leading-team').textContent = getTeamName(team);
-            
-            // Add to bid history
-            addBidToHistory(newBid);
-            
-            // Update chart
-            updateChart(parseInt(bidAmount));
-            
-            // Reset form
-            bidForm.reset();
         });
         
-        // Format number with commas
-        function formatNumber(num) {
-            return parseInt(num).toLocaleString('en-IN');
+        // Render Player Details
+        function renderPlayer(player) {
+            currentPlayerEl.innerHTML = `
+                <img src="${player.image || 'https://via.placeholder.com/200'}" 
+                     alt="${player.name}" class="player-image">
+                <div class="player-details">
+                    <h2 class="player-name">${player.name}</h2>
+                    <p>${player.role} | ${player.nationality || 'Nationality not specified'}</p>
+                    
+                    <div class="player-stats">
+                        <div class="stat-card">
+                            <div>Base Price</div>
+                            <strong>₹${player.basePrice.toLocaleString()}</strong>
+                        </div>
+                        ${player.stats ? `
+                        <div class="stat-card">
+                            <div>Matches</div>
+                            <strong>${player.stats.matches || '-'}</strong>
+                        </div>
+                        <div class="stat-card">
+                            <div>Runs</div>
+                            <strong>${player.stats.runs || '-'}</strong>
+                        </div>
+                        <div class="stat-card">
+                            <div>Wickets</div>
+                            <strong>${player.stats.wickets || '-'}</strong>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            // Update current bid display
+            updateBidDisplay(player);
         }
         
-        // Get full team name
+        // Update Bid Display
+        function updateBidDisplay(player) {
+            const currentBid = player.currentBid || player.basePrice;
+            currentBidEl.textContent = `₹${currentBid.toLocaleString()}`;
+            leadingTeamEl.textContent = player.team 
+                ? `Leading: ${getTeamName(player.team)}` 
+                : 'No bids yet';
+        }
+        
+        // Get Full Team Name
         function getTeamName(shortName) {
             const teams = {
                 'MI': 'Mumbai Indians',
@@ -629,106 +429,81 @@
             return teams[shortName] || shortName;
         }
         
-        // Add bid to history list
+        // Handle Bid Submission
+        bidForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const amount = parseInt(document.getElementById('bid-amount').value);
+            const team = document.getElementById('team-select').value;
+            
+            if (!amount || !team || !currentPlayerId) {
+                alert('Please enter valid bid amount and select team');
+                return;
+            }
+            
+            // Check if bid is higher than current
+            db.ref('players/' + currentPlayerId).once('value').then((snapshot) => {
+                const player = snapshot.val();
+                const currentBid = player.currentBid || player.basePrice;
+                
+                if (amount <= currentBid) {
+                    alert(`Bid must be higher than current bid (₹${currentBid.toLocaleString()})`);
+                    return;
+                }
+                
+                // Prepare updates
+                const updates = {};
+                updates['players/' + currentPlayerId + '/currentBid'] = amount;
+                updates['players/' + currentPlayerId + '/team'] = team;
+                updates['teams/' + team + '/remaining'] = firebase.database.ServerValue.increment(-amount);
+                
+                // Add to bid history
+                const newBid = {
+                    amount: amount,
+                    team: team,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                };
+                updates['bids/' + currentPlayerId + '/' + Date.now()] = newBid;
+                
+                // Execute updates
+                db.ref().update(updates)
+                    .then(() => {
+                        bidForm.reset();
+                        addBidToHistory(newBid);
+                    })
+                    .catch((error) => {
+                        alert('Error placing bid: ' + error.message);
+                    });
+            });
+        });
+        
+        // Add Bid to History List
         function addBidToHistory(bid) {
             const bidItem = document.createElement('div');
             bidItem.className = 'bid-item';
             bidItem.innerHTML = `
                 <span class="bidder">${getTeamName(bid.team)}</span>
-                <span class="bid-amount">₹${formatNumber(bid.amount)}</span>
+                <span class="bid-amount">₹${bid.amount.toLocaleString()}</span>
             `;
             
             bidList.prepend(bidItem);
-            
-            // Scroll to top
-            bidList.scrollTop = 0;
-            
-            // Add animation
-            setTimeout(() => {
-                bidItem.style.animation = 'none';
-                bidItem.offsetHeight; // Trigger reflow
-                bidItem.style.animation = null;
-            }, 10);
         }
         
-        // Update price chart
-        function updateChart(newPrice) {
-            const priceInCr = newPrice / 10000000;
-            const data = priceChart.data.datasets[0].data;
-            data[data.length - 1] = priceInCr;
-            priceChart.update();
-        }
+        // Load Bid History
+        db.ref('bids').on('child_added', (snapshot) => {
+            if (snapshot.key === currentPlayerId) {
+                snapshot.forEach((bidSnap) => {
+                    addBidToHistory(bidSnap.val());
+                });
+            }
+        });
         
-        // Initialize teams status
-        function initTeamsStatus() {
-            const teamsStatus = document.querySelector('.teams-status');
-            
-            const teams = [
-                { id: 'MI', name: 'Mumbai Indians', budget: 100, remaining: 65, logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/c/cd/Mumbai_Indians_Logo.svg/1200px-Mumbai_Indians_Logo.svg.png' },
-                { id: 'CSK', name: 'Chennai Super Kings', budget: 100, remaining: 72, logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/2/2b/Chennai_Super_Kings_Logo.svg/1200px-Chennai_Super_Kings_Logo.svg.png' },
-                { id: 'RCB', name: 'Royal Challengers', budget: 100, remaining: 58, logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/2/2a/Royal_Challengers_Bangalore_2020.svg/1200px-Royal_Challengers_Bangalore_2020.svg.png' },
-                { id: 'KKR', name: 'Kolkata Knight Riders', budget: 100, remaining: 81, logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/4c/Kolkata_Knight_Riders_Logo.svg/1200px-Kolkata_Knight_Riders_Logo.svg.png' },
-                { id: 'DC', name: 'Delhi Capitals', budget: 100, remaining: 76, logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f5/Delhi_Capitals_Logo.svg/1200px-Delhi_Capitals_Logo.svg.png' },
-                { id: 'PBKS', name: 'Punjab Kings', budget: 100, remaining: 69, logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/d/d4/Punjab_Kings_Logo.svg/1200px-Punjab_Kings_Logo.svg.png' },
-                { id: 'RR', name: 'Rajasthan Royals', budget: 100, remaining: 63, logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/6/60/Rajasthan_Royals_Logo.svg/1200px-Rajasthan_Royals_Logo.svg.png' },
-                { id: 'SRH', name: 'Sunrisers Hyderabad', budget: 100, remaining: 71, logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/8/81/Sunrisers_Hyderabad.svg/1200px-Sunrisers_Hyderabad.svg.png' }
-            ];
-            
-            teams.forEach(team => {
-                const teamCard = document.createElement('div');
-                teamCard.className = 'team-card';
-                teamCard.innerHTML = `
-                    <img src="${team.logo}" alt="${team.name}" class="team-logo">
-                    <div class="team-name">${team.name}</div>
-                    <div>₹${team.remaining} Cr / ₹${team.budget} Cr</div>
-                    <div class="team-budget">
-                        <div class="budget-progress" style="width: ${team.remaining}%"></div>
-                    </div>
-                `;
-                
-                teamsStatus.appendChild(teamCard);
-            });
-        }
-        
-        // Initialize sold players
-        function initSoldPlayers() {
-            const soldPlayersGrid = document.getElementById('sold-players-grid');
-            
-            const soldPlayers = [
-                { name: 'Rohit Sharma', price: '₹15 Cr', team: 'MI', image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/330000/330095.jpg' },
-                { name: 'Jasprit Bumrah', price: '₹12 Cr', team: 'MI', image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/316000/316005.jpg' },
-                { name: 'MS Dhoni', price: '₹14 Cr', team: 'CSK', image: 'https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/280000/280095.jpg' }
-            ];
-            
-            soldPlayers.forEach(player => {
-                const playerCard = document.createElement('div');
-                playerCard.className = 'sold-player';
-                playerCard.innerHTML = `
-                    <img src="${player.image}" alt="${player.name}" class="sold-player-img">
-                    <div>${player.name}</div>
-                    <div style="color: var(--primary); font-weight: bold;">${player.price}</div>
-                    <div style="font-size: 0.8rem;">${player.team}</div>
-                `;
-                
-                soldPlayersGrid.appendChild(playerCard);
-            });
-        }
-        
-        // Initialize the page
-        function init() {
-            startTimer(30);
-            initTeamsStatus();
-            initSoldPlayers();
-            
-            // Listen for real-time bid updates from Firebase
-            database.ref('bids').on('child_added', (snapshot) => {
-                const bid = snapshot.val();
-                addBidToHistory(bid);
-            });
-        }
-        
-        // Start the app
-        init();
+        // Initialize
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                window.location.href = 'auth.html';
+            }
+        });
     </script>
 </body>
 </html>
