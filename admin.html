@@ -1,73 +1,831 @@
-<!-- Add to admin.html -->
-<div class="admin-container">
-    <h2>Admin Panel</h2>
-    
-    <div class="admin-section">
-        <h3>Add New Player</h3>
-        <form id="addPlayerForm">
-            <input type="text" id="playerName" placeholder="Name" required>
-            <input type="number" id="playerAge" placeholder="Age" required>
-            <select id="playerRole" required>
-                <option value="">Select Role</option>
-                <option value="Batsman">Batsman</option>
-                <option value="Bowler">Bowler</option>
-                <option value="All-Rounder">All-Rounder</option>
-                <option value="Wicketkeeper">Wicketkeeper</option>
-            </select>
-            <input type="number" id="basePrice" placeholder="Base Price" required>
-            <input type="text" id="playerImage" placeholder="Image URL">
-            <button type="submit">Add Player</button>
-        </form>
-    </div>
-
-    <div class="admin-section">
-        <h3>Current Players</h3>
-        <div id="playersList"></div>
-    </div>
-</div>
-
-<script src="js/admin.js"></script>
-<div class="admin-tabs">
-    <button class="tab-btn active" data-tab="players">Players</button>
-    <button class="tab-btn" data-tab="teams">Teams</button>
-    <button class="tab-btn" data-tab="auction">Auction Control</button>
-    <button class="tab-btn" data-tab="users">User Management</button>
-  </div>
-  
-  <div id="players-tab" class="tab-content active">
-    <!-- Existing player management -->
-    <div class="import-export">
-      <h3>Bulk Operations</h3>
-      <input type="file" id="playerCsv" accept=".csv">
-      <button id="importPlayers">Import Players</button>
-      <button id="exportPlayers">Export Players</button>
-    </div>
-  </div>
-  
-  <div id="teams-tab" class="tab-content">
-    <!-- Team management UI -->
-  </div>
-  
-  <div id="auction-tab" class="tab-content">
-    <div class="auction-controls">
-      <button id="startAuction">Start Auction</button>
-      <button id="pauseAuction">Pause Auction</button>
-      <button id="nextPlayer">Next Player</button>
-      <button id="resetAuction">Reset Auction</button>
-      
-      <div class="settings">
-        <label>Bid Timer (seconds):</label>
-        <input type="number" id="bidTimer" value="30">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPL Auction Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #ff5e14;
+            --secondary: #2b2d42;
+            --accent: #00b4d8;
+            --light: #f8f9fa;
+            --dark: #1a1a2e;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+        }
         
-        <label>Base Price Multiplier:</label>
-        <input type="number" id="priceMultiplier" value="1.0" step="0.1">
-      </div>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, var(--dark), var(--secondary));
+            color: white;
+            padding: 2rem 0;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 0 1.5rem;
+        }
+        
+        .logo img {
+            width: 80%;
+            max-width: 180px;
+            filter: drop-shadow(0 0 10px rgba(255,94,20,0.5));
+        }
+        
+        .nav-menu {
+            list-style: none;
+        }
+        
+        .nav-item {
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+        
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 5px;
+            background: var(--primary);
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover, .nav-item.active .nav-link {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .nav-link i {
+            margin-right: 1rem;
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            color: var(--secondary);
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 1rem;
+            border: 2px solid var(--primary);
+        }
+        
+        /* Dashboard Cards */
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--primary);
+        }
+        
+        .stat-title {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-change {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        
+        .stat-change.positive {
+            color: var(--success);
+        }
+        
+        .stat-change.negative {
+            color: var(--danger);
+        }
+        
+        /* Player Management */
+        .content-section {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .section-header h2 {
+            font-size: 1.5rem;
+            color: var(--secondary);
+        }
+        
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .btn i {
+            margin-right: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #e04b00;
+            box-shadow: 0 5px 15px rgba(255,94,20,0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #0093b8;
+            box-shadow: 0 5px 15px rgba(0,180,216,0.3);
+        }
+        
+        /* Player Table */
+        .player-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .player-table th {
+            background: var(--secondary);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+        }
+        
+        .player-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .player-table tr:hover {
+            background: rgba(0,180,216,0.05);
+        }
+        
+        .player-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 0.5rem;
+        }
+        
+        .player-name {
+            display: flex;
+            align-items: center;
+        }
+        
+        .status {
+            padding: 0.3rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status.available {
+            background: rgba(46,204,113,0.1);
+            color: var(--success);
+        }
+        
+        .status.sold {
+            background: rgba(231,76,60,0.1);
+            color: var(--danger);
+        }
+        
+        .status.ongoing {
+            background: rgba(255,159,67,0.1);
+            color: #ff9f43;
+        }
+        
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            margin: 0 0.3rem;
+            transition: color 0.3s ease;
+        }
+        
+        .action-btn:hover {
+            color: var(--primary);
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0,180,216,0.2);
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: translateY(-50px);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            font-size: 1.3rem;
+            color: var(--secondary);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+        
+        /* Auction Control */
+        .auction-control {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .timer-display {
+            background: var(--secondary);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+        
+        .timer-display i {
+            margin-right: 0.8rem;
+            color: var(--accent);
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 80px;
+                overflow: hidden;
+            }
+            
+            .logo img {
+                width: 60%;
+            }
+            
+            .nav-link span {
+                display: none;
+            }
+            
+            .nav-link i {
+                margin-right: 0;
+                font-size: 1.5rem;
+            }
+            
+            .main-content {
+                margin-left: 80px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .stats-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .auction-control {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <img src="https://upload.wikimedia.org/wikipedia/en/thumb/2/2a/Royal_Challengers_Bangalore_2020.svg/1200px-Royal_Challengers_Bangalore_2020.svg.png" alt="IPL Auction">
+        </div>
+        
+        <ul class="nav-menu">
+            <li class="nav-item active">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    <span>Players</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Teams</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-gavel"></i>
+                    <span>Auction</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Analytics</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="header">
+            <h1>Admin Dashboard</h1>
+            <div class="user-menu">
+                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Admin" class="user-img">
+                <span>Admin User</span>
+            </div>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="stat-title">Total Players</div>
+                <div class="stat-value">247</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> 12% from last auction
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Players Sold</div>
+                <div class="stat-value">84</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> 8% from last auction
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Total Amount Spent</div>
+                <div class="stat-value">₹187 Cr</div>
+                <div class="stat-change negative">
+                    <i class="fas fa-arrow-down"></i> 5% from last auction
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Active Teams</div>
+                <div class="stat-value">8</div>
+                <div class="stat-change">
+                    <i class="fas fa-equals"></i> Same as last auction
+                </div>
+            </div>
+        </div>
+        
+        <!-- Auction Control -->
+        <div class="content-section">
+            <div class="section-header">
+                <h2>Auction Control</h2>
+            </div>
+            
+            <div class="auction-control">
+                <button class="btn btn-primary">
+                    <i class="fas fa-play"></i> Start Auction
+                </button>
+                <button class="btn btn-secondary">
+                    <i class="fas fa-pause"></i> Pause Auction
+                </button>
+                <button class="btn btn-primary">
+                    <i class="fas fa-step-forward"></i> Next Player
+                </button>
+                <div class="timer-display">
+                    <i class="fas fa-clock"></i>
+                    <span id="auction-timer">00:30</span>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Timer Duration (seconds)</label>
+                    <input type="number" class="form-control" value="30" min="10" max="120">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Base Price Multiplier</label>
+                    <input type="number" class="form-control" value="1.0" step="0.1" min="0.5" max="3">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Player Management -->
+        <div class="content-section">
+            <div class="section-header">
+                <h2>Player Management</h2>
+                <button class="btn btn-primary" id="add-player-btn">
+                    <i class="fas fa-plus"></i> Add Player
+                </button>
+            </div>
+            
+            <table class="player-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Role</th>
+                        <th>Base Price</th>
+                        <th>Status</th>
+                        <th>Team</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="player-name">
+                                <img src="https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/319000/319095.jpg" alt="Virat Kohli" class="player-avatar">
+                                Virat Kohli
+                            </div>
+                        </td>
+                        <td>Batsman</td>
+                        <td>₹2 Cr</td>
+                        <td><span class="status sold">Sold</span></td>
+                        <td>RCB</td>
+                        <td>
+                            <button class="action-btn" title="Edit"><i class="fas fa-edit"></i></button>
+                            <button class="action-btn" title="Delete"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="player-name">
+                                <img src="https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/316000/316005.jpg" alt="Jasprit Bumrah" class="player-avatar">
+                                Jasprit Bumrah
+                            </div>
+                        </td>
+                        <td>Bowler</td>
+                        <td>₹1.5 Cr</td>
+                        <td><span class="status ongoing">Ongoing</span></td>
+                        <td>-</td>
+                        <td>
+                            <button class="action-btn" title="Edit"><i class="fas fa-edit"></i></button>
+                            <button class="action-btn" title="Delete"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="player-name">
+                                <img src="https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_320,q_50/lsci/db/PICTURES/CMS/330000/330095.jpg" alt="Rohit Sharma" class="player-avatar">
+                                Rohit Sharma
+                            </div>
+                        </td>
+                        <td>Batsman</td>
+                        <td>₹1.8 Cr</td>
+                        <td><span class="status available">Available</span></td>
+                        <td>-</td>
+                        <td>
+                            <button class="action-btn" title="Edit"><i class="fas fa-edit"></i></button>
+                            <button class="action-btn" title="Delete"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+    
+    <!-- Add Player Modal -->
+    <div class="modal" id="player-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Player</h3>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="player-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Player Name</label>
+                            <input type="text" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Age</label>
+                            <input type="number" class="form-control" min="16" max="50" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Role</label>
+                            <select class="form-control" required>
+                                <option value="">Select Role</option>
+                                <option>Batsman</option>
+                                <option>Bowler</option>
+                                <option>All-Rounder</option>
+                                <option>Wicketkeeper</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Specialty</label>
+                            <select class="form-control">
+                                <option value="">Select Specialty</option>
+                                <option>Top Order</option>
+                                <option>Middle Order</option>
+                                <option>Finisher</option>
+                                <option>Fast Bowler</option>
+                                <option>Spin Bowler</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Base Price (₹)</label>
+                            <input type="number" class="form-control" min="2000000" step="500000" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nationality</label>
+                            <select class="form-control" required>
+                                <option value="">Select Nationality</option>
+                                <option>Indian</option>
+                                <option>Australian</option>
+                                <option>English</option>
+                                <option>South African</option>
+                                <option>West Indian</option>
+                                <option>New Zealander</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Player Image URL</label>
+                        <input type="url" class="form-control" placeholder="https://example.com/player.jpg">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Player Stats</label>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <input type="number" class="form-control" placeholder="Matches">
+                            </div>
+                            <div class="form-group">
+                                <input type="number" class="form-control" placeholder="Runs">
+                            </div>
+                            <div class="form-group">
+                                <input type="number" class="form-control" placeholder="Wickets" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <input type="number" class="form-control" placeholder="Average" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-btn">Cancel</button>
+                <button class="btn btn-primary" id="save-btn">Save Player</button>
+            </div>
+        </div>
     </div>
     
-    <div class="auction-stats">
-      <h3>Auction Statistics</h3>
-      <p>Total Players: <span id="totalPlayers">0</span></p>
-      <p>Players Sold: <span id="playersSold">0</span></p>
-      <p>Total Amount Spent: ₹<span id="totalSpent">0</span></p>
-    </div>
-  </div>
+    <script>
+        // DOM Elements
+        const addPlayerBtn = document.getElementById('add-player-btn');
+        const playerModal = document.getElementById('player-modal');
+        const modalClose = document.getElementById('modal-close');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const saveBtn = document.getElementById('save-btn');
+        
+        // Open modal
+        addPlayerBtn.addEventListener('click', () => {
+            playerModal.classList.add('active');
+        });
+        
+        // Close modal
+        function closeModal() {
+            playerModal.classList.remove('active');
+        }
+        
+        modalClose.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        
+        // Save player
+        saveBtn.addEventListener('click', () => {
+            // Add your save logic here
+            alert('Player saved successfully!');
+            closeModal();
+        });
+        
+        // Auction timer simulation
+        let seconds = 30;
+        const timerElement = document.getElementById('auction-timer');
+        
+        function updateTimer() {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            timerElement.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            if (seconds > 0) {
+                seconds--;
+                setTimeout(updateTimer, 1000);
+            }
+        }
+        
+        // Start timer (for demo)
+        // updateTimer();
+    </script>
+</body>
+</html>
