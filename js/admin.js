@@ -130,3 +130,38 @@ document.getElementById('startAuction').addEventListener('click', () => {
     // Implement CSV parsing logic
     return []; // Return array of player objects
   }
+  // Player Management
+function addPlayer(playerData) {
+  return database.ref('players').push(playerData);
+}
+
+function updatePlayer(playerId, updates) {
+  return database.ref('players/' + playerId).update(updates);
+}
+
+// Auction Control
+function startAuction() {
+  return database.ref('auction/status').set('running');
+}
+
+function setNextPlayer(playerId) {
+  return database.ref('auction').update({
+    currentPlayer: playerId,
+    status: 'running'
+  });
+}
+
+// Real-time Listeners
+function setupRealTimeUpdates() {
+  // Players listener
+  database.ref('players').on('value', (snapshot) => {
+    const players = snapshot.val();
+    // Update your UI here
+  });
+  
+  // Auction status listener
+  database.ref('auction').on('value', (snapshot) => {
+    const auction = snapshot.val();
+    // Update timer and status UI
+  });
+}
