@@ -166,3 +166,17 @@ document.querySelectorAll('.quick-bid').forEach(button => {
     document.getElementById('bidAmount').value = currentBid + increment;
   });
 });
+// Listen for auction updates
+firebase.database().ref('auction/current').on('value', (snapshot) => {
+  const playerId = snapshot.val();
+  if (playerId) loadPlayer(playerId);
+});
+
+// Place bid
+function placeBid(amount, teamId) {
+  const updates = {};
+  updates['players/'+playerId+'/currentBid'] = amount;
+  updates['players/'+playerId+'/team'] = teamId;
+  updates['teams/'+teamId+'/remaining'] = firebase.database.ServerValue.increment(-amount);
+  return firebase.database().ref().update(updates);
+}

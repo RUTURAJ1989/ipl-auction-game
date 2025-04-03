@@ -12,23 +12,15 @@ document.querySelectorAll('.auth-tab').forEach(tab => {
   });
 });
 
-// Login
-document.getElementById('loginForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  
-  const email = document.getElementById('loginEmail').value;
-  const password = document.getElementById('loginPassword').value;
-  
-  auth.signInWithEmailAndPassword(email, password)
-    .then((userCredential) => {
-      // Redirect based on user role
-      checkUserRole(userCredential.user.uid);
-    })
-    .catch((error) => {
-      alert(error.message);
-    });
-});
+/// Login
+function login(email, password) {
+  return firebase.auth().signInWithEmailAndPassword(email, password);
+}
 
+// Admin check
+function isAdmin(uid) {
+  return firebase.database().ref('admins/' + uid).once('value');
+}
 // Registration
 document.getElementById('registerForm').addEventListener('submit', function(e) {
   e.preventDefault();

@@ -5,9 +5,9 @@ const firebaseConfig = {
   projectId: "ipl-auction-game-89635",
   storageBucket: "ipl-auction-game-89635.firebasestorage.app",
   messagingSenderId: "1068660815248",
-  appId: "1:1068660815248:web:29f41524ab94c7de952f15",
-  measurementId: "G-BNJZMTCGVT"
+  appId: "1:1068660815248:web:29f41524ab94c7de952f15"
 };
+firebase.initializeApp(firebaseConfig);
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
