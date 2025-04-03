@@ -1,5 +1,3 @@
-// Initialize Firebase Auth
-const auth = firebase.auth();
 
 // Tab switching
 document.querySelectorAll('.auth-tab').forEach(tab => {
@@ -82,6 +80,7 @@ function loadTeamsForRegistration() {
     });
   });
 }
+
 
 // Initialize
 document.addEventListener('DOMContentLoaded', loadTeamsForRegistration);
